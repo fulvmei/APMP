@@ -8,11 +8,13 @@ import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayer.EventListener;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.PlaybackParameters;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.video.VideoRendererEventListener;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
@@ -27,11 +29,12 @@ import android.view.Surface;
 import android.view.TextureView.SurfaceTextureListener;
 import android.widget.FrameLayout;
 
+import java.io.IOException;
+
 /**
  * 基于ExoPlayer的视频播放控件
  *
  * @author ChengFu
- *
  */
 public class ExoVideoView extends FrameLayout implements IVideoPlay {
 
@@ -256,9 +259,18 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
 
     @Override
     public void setVideoPath(String path) {
+        if (path == null) {
+            stopPlayback(true);
+            mVideoTextureView.clearSurface();
+            if (mVideoListener != null) {
+                mVideoListener.onError(ExoPlaybackException.createForSource(new IOException("VideoPath is null")));
+            }
+            return;
+        }
         mVideoPath = path;
         mExoMediaPlayer.setPlayWhenReady(false);
         mExoMediaPlayer.prepare(path);
+        mVideoTextureView.clearSurface();
         if (mSurface != null) {
             mExoMediaPlayer.setVideoSurface(mSurface);
         }
@@ -295,7 +307,7 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
             return false;
         }
         int playbackState = mExoMediaPlayer.getPlaybackState();
-        if (playbackState != ExoPlayer.STATE_IDLE && playbackState != ExoPlayer.STATE_ENDED) {
+        if (playbackState != Player.STATE_IDLE && playbackState != Player.STATE_ENDED) {
             return false;
         }
         seekTo(0);
@@ -348,8 +360,18 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
     }
 
     @Override
-    public void setVolume(int volume) {
-        mExoMediaPlayer.setVolume(volume);
+    public void setVolume(float volume) {
+        if (mExoMediaPlayer != null) {
+            mExoMediaPlayer.setVolume(volume);
+        }
+    }
+
+    @Override
+    public float getVolume() {
+        if (mExoMediaPlayer != null) {
+            return mExoMediaPlayer.getVolume();
+        }
+        return 0f;
     }
 
     @Override
@@ -513,24 +535,27 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
         public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
             Log.i(TAG, "onPlayerStateChanged---playWhenReady=" + playWhenReady + ",playbackState=" + playbackState);
 
-            if (playbackState == ExoPlayer.STATE_READY && mVideoListener != null) {
+            if (playbackState == Player.STATE_READY && mVideoListener != null) {
                 mVideoListener.onLoadingChanged(false);
             }
-            if (mVideoController == null) {
-                return;
-            }
-            if (playbackState == ExoPlayer.STATE_READY) {
-                mVideoController.setEnabled(true);
-                if (mShowControllerWhenPrepared) {
-                    mVideoController.show();
+            if (playbackState == Player.STATE_READY) {
+                if (mVideoController != null) {
+                    mVideoController.setEnabled(true);
+                    if (mShowControllerWhenPrepared) {
+                        mVideoController.show();
+                    }
                 }
-            } else if (playbackState == ExoPlayer.STATE_IDLE || playbackState == ExoPlayer.STATE_ENDED) {
+            } else if (playbackState == Player.STATE_IDLE || playbackState == Player.STATE_ENDED) {
                 setKeepScreenOn(false);
-                mVideoController.setEnabled(false);
+                if (mVideoController != null) {
+                    mVideoController.setEnabled(false);
+                }
             }
-            if (playbackState == ExoPlayer.STATE_ENDED) {
+            if (playbackState == Player.STATE_ENDED) {
                 setKeepScreenOn(false);
-                mVideoListener.onCompletion();
+                if (mVideoListener != null) {
+                    mVideoListener.onCompletion();
+                }
             }
         }
 

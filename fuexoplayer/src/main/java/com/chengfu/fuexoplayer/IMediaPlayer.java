@@ -5,48 +5,33 @@ import android.support.annotation.IntRange;
 
 /**
  * 播放器接口
- * 
- * @author ChengFu
  *
+ * @author ChengFu
  */
 public interface IMediaPlayer {
 
-//	void setMediaPath(@Nullable String path);
-//
-//	String getMediaPath();
-	
-	void start();
+    void start();
 
-	void pause();
-	
-//	boolean restart();
-//
-//	void suspend();
-	
-//	void stopPlayback(boolean clearSurface);
+    void pause();
 
-	long getDuration();
+    long getDuration();
 
-	long getCurrentPosition();
+    long getCurrentPosition();
 
-	void seekTo(@IntRange(from = 0) long milliseconds);
+    void seekTo(@IntRange(from = 0) long milliseconds);
 
-	boolean isPlaying();
+    boolean isPlaying();
 
-	int getBufferPercentage();
+    int getBufferPercentage();
 
-//	boolean canPause();
-//
-//	boolean canSeekBackward();
-//
-//	boolean canSeekForward();
+    void setVolume(float volume);
 
-	void setVolume(@FloatRange(from = 0.0, to = 1.0) int volume);
+    float getVolume();
 
-	int getAudioSessionId();
+    int getAudioSessionId();
 
-	void reset();
-	
-	void release();
+    void reset();
+
+    void release();
 
 }

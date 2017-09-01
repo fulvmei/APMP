@@ -12,7 +12,7 @@
         android:layout_height="48dp"
         android:layout_marginLeft="4dp"
         android:scaleType="centerCrop"
-        android:src="@mipmap/ic_launcher" />
+        android:src="@drawable/ic_launcher" />
 
     <LinearLayout
         android:layout_width="0dp"
@@ -48,13 +48,13 @@
         android:layout_height="48dp"
         android:background="@null"
         android:gravity="center"
-        android:src="@mipmap/ic_default_play" />
+        android:src="@drawable/ic_default_play" />
 
     <ImageButton
         android:id="@+id/media_imgBtnCancel"
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:background="@null"
-        android:src="@mipmap/ic_default_clear" />
+        android:src="@drawable/ic_default_clear" />
 
 </LinearLayout>
