@@ -8,8 +8,8 @@ android {
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 3
-        versionName "1.2.0"
+        versionCode 5
+        versionName "1.2.2"
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -49,18 +49,14 @@ publish {
     userOrg = 'fu-cheng'      //bintray注册的用户名
     groupId = 'com.chengfu.fuexoplayer'         //compile引用时的第1部分groupId
     artifactId = 'fuexoplayer'     //compile引用时的第2部分项目名
-    publishVersion = '1.2.0'    //compile引用时的第3部分版本号
+    publishVersion = '1.2.2'    //compile引用时的第3部分版本号
     desc = 'a media player based on exoplayer'
     //website = 'https://github.com/wzgiceman/Rxbus
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
     compile 'com.android.support:appcompat-v7:26.+'
-    testCompile 'junit:junit:4.12'
 
     compile 'com.google.android.exoplayer:exoplayer:r2.5.1'
     compile 'com.google.android.exoplayer:exoplayer-core:r2.5.1'

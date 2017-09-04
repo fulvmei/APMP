@@ -221,6 +221,11 @@ public class ExoAudioPlayService extends Service implements IAudioPlay {
     }
 
     @Override
+    public void stopPlayback() {
+        mExoMediaPlayer.stop();
+    }
+
+    @Override
     public void start() {
         mExoMediaPlayer.setPlayWhenReady(true);
         updataNotifition();
