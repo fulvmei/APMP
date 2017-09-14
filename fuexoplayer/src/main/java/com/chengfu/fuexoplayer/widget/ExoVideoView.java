@@ -19,6 +19,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.media.AudioManager;
+import android.os.PowerManager;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -58,6 +59,7 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
     private AudioManager mAudioManager;
     private AudioFocusHelper mAudioFocusHelper;
     private boolean handleAudioFocus = true;
+    private PowerManager.WakeLock mWakeLock = null;
 
     private ExoVideoView.ScaleType mScaleType = ExoVideoView.ScaleType.FIT_CENTER;
 
@@ -98,6 +100,9 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
 
         mAudioManager = (AudioManager) context.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
         mAudioFocusHelper = new AudioFocusHelper();
+
+        PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+        mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE, TAG);
 
         initTextureView();
 
@@ -257,6 +262,18 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
         return mShowControllerWhenPrepared;
     }
 
+    public void keepScreenOn(boolean keep) {
+        if (keep) {
+            if (null != mWakeLock && (!mWakeLock.isHeld())) {
+                mWakeLock.acquire();
+            }
+        } else {
+            if (mWakeLock != null && mWakeLock.isHeld()) {
+                mWakeLock.release();
+            }
+        }
+    }
+
     @Override
     public void setVideoPath(String path) {
         if (path == null) {
@@ -271,6 +288,9 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
         mExoMediaPlayer.setPlayWhenReady(false);
         mExoMediaPlayer.prepare(path);
         mVideoTextureView.clearSurface();
+        if (mVideoController != null) {
+            mVideoController.hideNow();
+        }
         if (mSurface != null) {
             mExoMediaPlayer.setVideoSurface(mSurface);
         }
@@ -283,7 +303,7 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
 
     @Override
     public void start() {
-        setKeepScreenOn(true);
+        keepScreenOn(true);
         mAudioFocusHelper.requestFocus();
 
         mExoMediaPlayer.setPlayWhenReady(true);
@@ -293,7 +313,7 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
 
     @Override
     public void pause() {
-        setKeepScreenOn(false);
+        keepScreenOn(false);
         mAudioFocusHelper.abandonFocus();
 
         mExoMediaPlayer.setPlayWhenReady(false);
@@ -317,7 +337,7 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
 
     @Override
     public void suspend() {
-        setKeepScreenOn(false);
+        keepScreenOn(false);
         mAudioFocusHelper.abandonFocus();
 
         mExoMediaPlayer.release();
@@ -326,7 +346,7 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
 
     @Override
     public void stopPlayback(boolean clearSurface) {
-        setKeepScreenOn(false);
+        keepScreenOn(false);
         mExoMediaPlayer.stop();
         mPlayRequested = false;
         if (clearSurface) {
@@ -546,13 +566,12 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
                     }
                 }
             } else if (playbackState == Player.STATE_IDLE || playbackState == Player.STATE_ENDED) {
-                setKeepScreenOn(false);
                 if (mVideoController != null) {
                     mVideoController.setEnabled(false);
                 }
             }
             if (playbackState == Player.STATE_ENDED) {
-                setKeepScreenOn(false);
+                keepScreenOn(false);
                 if (mVideoListener != null) {
                     mVideoListener.onCompletion();
                 }
@@ -567,7 +586,7 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
         @Override
         public void onPlayerError(ExoPlaybackException error) {
             Log.i(TAG, "onPlayerError---error=" + error);
-            setKeepScreenOn(false);
+            keepScreenOn(false);
             if (mVideoListener != null) {
                 mVideoListener.onError(error);
             }
