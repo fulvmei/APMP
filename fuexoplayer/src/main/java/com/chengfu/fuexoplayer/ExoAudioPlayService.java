@@ -31,6 +31,7 @@ import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.IBinder;
+import android.os.RemoteException;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.RemoteViews;
@@ -58,12 +59,14 @@ public class ExoAudioPlayService extends Service implements IAudioPlay {
     private WifiManager.WifiLock mWifiLock;// WIFI休眠唤醒锁
     private AudioManager mAudioManager;
 
-    private Notification mNotification;
-    private RemoteViews mRemoteViews;
+//    private Notification mNotification;
+//    private RemoteViews mRemoteViews;
 
     private AudioListener mAudioListener;
 
     private boolean mAudioFocusPause;
+
+    private AudioNotificationManager mAudioNotificationManager;
 
     public static interface AudioListener {
         public void onLoadingChanged(boolean isLoading);
@@ -114,6 +117,8 @@ public class ExoAudioPlayService extends Service implements IAudioPlay {
 
         initMediaPlayer();
 
+        mAudioNotificationManager = new AudioNotificationManager(this);
+        mAudioNotificationManager.startNotification();
     }
 
     @Override
@@ -159,40 +164,40 @@ public class ExoAudioPlayService extends Service implements IAudioPlay {
         return remoteViews;
     }
 
-    protected Notification initNotification() {
-        Log.i(TAG, "初始化Notifition");
-        NotificationCompat.Builder mNotificationBuilder = new NotificationCompat.Builder(this);
-        mNotificationBuilder.setSmallIcon(FuPlayerUtil.getAppIcon(this));
-
-        mRemoteViews = initRemoteViews();
-        if (mRemoteViews != null) {
-            mNotificationBuilder.setContent(mRemoteViews);
-        }
-
-        PendingIntent pendingActivity = initNotificationClickIntent();
-        if (pendingActivity != null) {
-            mNotificationBuilder.setContentIntent(pendingActivity);
-        }
-        Notification notification = mNotificationBuilder.build();
-        notification.flags = Notification.FLAG_NO_CLEAR | Notification.FLAG_ONGOING_EVENT | Notification.FLAG_INSISTENT;
-        return notification;
-    }
+//    protected Notification initNotification() {
+//        Log.i(TAG, "初始化Notifition");
+//        NotificationCompat.Builder mNotificationBuilder = new NotificationCompat.Builder(this);
+//        mNotificationBuilder.setSmallIcon(FuPlayerUtil.getAppIcon(this));
+//
+//        mRemoteViews = initRemoteViews();
+//        if (mRemoteViews != null) {
+//            mNotificationBuilder.setContent(mRemoteViews);
+//        }
+//
+//        PendingIntent pendingActivity = initNotificationClickIntent();
+//        if (pendingActivity != null) {
+//            mNotificationBuilder.setContentIntent(pendingActivity);
+//        }
+//        Notification notification = mNotificationBuilder.build();
+//        notification.flags = Notification.FLAG_NO_CLEAR | Notification.FLAG_ONGOING_EVENT | Notification.FLAG_INSISTENT;
+//        return notification;
+//    }
 
     protected PendingIntent initNotificationClickIntent() {
         return null;
     }
 
-    private void updataNotifition() {
-        if (mNotification == null) {
-            mNotification = initNotification();
-        }
-        if (mNotification == null) {
-            return;
-        }
-        Log.i(TAG, "更新Notifition");
-        updataNotifitionData(mRemoteViews);
-        startForeground(NOTIF_ID, mNotification);
-    }
+//    private void updataNotifition() {
+//        if (mNotification == null) {
+//            mNotification = initNotification();
+//        }
+//        if (mNotification == null) {
+//            return;
+//        }
+//        Log.i(TAG, "更新Notifition");
+//        updataNotifitionData(mRemoteViews);
+//        startForeground(NOTIF_ID, mNotification);
+//    }
 
     protected void updataNotifitionData(RemoteViews remoteViews) {
         remoteViews.setImageViewResource(R.id.media_imgViewIocn, FuPlayerUtil.getAppIcon(this));
@@ -228,7 +233,7 @@ public class ExoAudioPlayService extends Service implements IAudioPlay {
     @Override
     public void start() {
         mExoMediaPlayer.setPlayWhenReady(true);
-        updataNotifition();
+//        updataNotifition();
         if (mAudioListener != null) {
             mAudioListener.onPlayPauseChanged(isPlaying());
         }
@@ -240,7 +245,7 @@ public class ExoAudioPlayService extends Service implements IAudioPlay {
     @Override
     public void pause() {
         mExoMediaPlayer.setPlayWhenReady(false);
-        updataNotifition();
+//        updataNotifition();
         if (mAudioListener != null) {
             mAudioListener.onPlayPauseChanged(isPlaying());
         }

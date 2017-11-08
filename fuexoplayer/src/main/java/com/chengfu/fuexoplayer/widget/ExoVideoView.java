@@ -4,7 +4,6 @@ import com.chengfu.fuexoplayer.ExoMediaPlayer;
 import com.chengfu.fuexoplayer.IVideoController;
 import com.chengfu.fuexoplayer.video.IVideoPlay;
 import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayer.EventListener;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.PlaybackParameters;
@@ -76,6 +75,11 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
     private VideoListener mVideoListener;
 
     public static interface VideoListener {
+
+        public void onReady();
+
+        public void onPlayPauseChanged(boolean play);
+
         public void onLoadingChanged(boolean isLoading);
 
         public void onError(ExoPlaybackException error);
@@ -161,7 +165,7 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
     }
 
     public boolean isInPlaybackState() {
-        return mExoMediaPlayer.getPlaybackState() == ExoPlayer.STATE_READY;
+        return mExoMediaPlayer.getPlaybackState() == Player.STATE_READY;
     }
 
     public void setScaleType(ExoVideoView.ScaleType scaleType) {
@@ -308,6 +312,9 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
 
         mExoMediaPlayer.setPlayWhenReady(true);
         mPlayRequested = true;
+        if (mVideoListener != null) {
+            mVideoListener.onPlayPauseChanged(isPlaying());
+        }
 
     }
 
@@ -318,7 +325,9 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
 
         mExoMediaPlayer.setPlayWhenReady(false);
         mPlayRequested = false;
-
+        if (mVideoListener != null) {
+            mVideoListener.onPlayPauseChanged(isPlaying());
+        }
     }
 
     @Override
@@ -371,7 +380,7 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
 
     @Override
     public boolean isPlaying() {
-        return mExoMediaPlayer.getPlaybackState() == ExoPlayer.STATE_READY && mExoMediaPlayer.getPlayWhenReady();
+        return mExoMediaPlayer.getPlaybackState() == Player.STATE_READY && mExoMediaPlayer.getPlayWhenReady();
     }
 
     @Override
@@ -559,6 +568,9 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
                 mVideoListener.onLoadingChanged(false);
             }
             if (playbackState == Player.STATE_READY) {
+                if (mVideoListener != null) {
+                    mVideoListener.onReady();
+                }
                 if (mVideoController != null) {
                     mVideoController.setEnabled(true);
                     if (mShowControllerWhenPrepared) {
