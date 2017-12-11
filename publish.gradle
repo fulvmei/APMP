@@ -1,0 +1,14 @@
+if (project.ext.has("exoplayerPublishEnabled")
+        && project.ext.exoplayerPublishEnabled) {
+    apply plugin: 'bintray-release'
+    publish {
+        repoName = 'maven'
+        userOrg = 'fu-cheng'
+        groupId = 'com.chengfu.fuexoplayer'
+        artifactId = 'fuexoplayer'
+        publishVersion = '1.2.6'
+        versionAttributes = ""
+        desc = 'a media player based on exoplayer'
+        website = "https://bintray.com/fu-cheng/maven/fuexoplayer"
+    }
+}

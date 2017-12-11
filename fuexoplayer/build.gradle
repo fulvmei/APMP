@@ -3,13 +3,13 @@ apply plugin: 'com.novoda.bintray-release'
 
 android {
     compileSdkVersion 26
-
+    buildToolsVersion '26.0.2'
 
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 26
-        versionCode 8
-        versionName "1.2.6"
+        versionCode 10
+        versionName "1.3.2"
     }
     buildTypes {
         release {
@@ -43,18 +43,16 @@ allprojects {
 
 publish {
     repoName = 'maven'
-    userOrg = 'fu-cheng'      //bintray注册的用户名
-    groupId = 'com.chengfu.fuexoplayer'         //compile引用时的第1部分groupId
-    artifactId = 'fuexoplayer'     //compile引用时的第2部分项目名
-    publishVersion = '1.2.6'    //compile引用时的第3部分版本号
+    userOrg = 'fu-cheng'
+    groupId = 'com.chengfu.fuexoplayer'
+    artifactId = 'fuexoplayer'
+    publishVersion = '1.3.2'
     desc = 'a media player based on exoplayer'
-    //website = 'https://github.com/wzgiceman/Rxbus
+    website = "https://bintray.com/fu-cheng/maven/fuexoplayer"
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:26.1.0'
-
+    compile "com.android.support:appcompat-v7:26.1.0"
     compile 'com.google.android.exoplayer:exoplayer:r2.5.1'
     compile 'com.google.android.exoplayer:exoplayer-core:r2.5.1'
     compile 'com.google.android.exoplayer:exoplayer-dash:r2.5.1'

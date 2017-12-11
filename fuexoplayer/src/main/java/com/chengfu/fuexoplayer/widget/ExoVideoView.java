@@ -312,10 +312,6 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
 
         mExoMediaPlayer.setPlayWhenReady(true);
         mPlayRequested = true;
-        if (mVideoListener != null) {
-            mVideoListener.onPlayPauseChanged(isPlaying());
-        }
-
     }
 
     @Override
@@ -528,6 +524,7 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
             mExoMediaPlayer.clearVideoSurface();
             surfaceTexture.release();
 //            stopPlayback(true);
+//            pause();
             return true;
         }
 
@@ -570,6 +567,7 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
             if (playbackState == Player.STATE_READY) {
                 if (mVideoListener != null) {
                     mVideoListener.onReady();
+                    mVideoListener.onPlayPauseChanged(isPlaying());
                 }
                 if (mVideoController != null) {
                     mVideoController.setEnabled(true);
