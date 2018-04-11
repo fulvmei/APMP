@@ -162,8 +162,8 @@ public class FuMediaPlayer implements ExoPlayer.EventListener {
     }
 
     @Override
-    public void onTimelineChanged(Timeline timeline, Object manifest) {
-        // Purposefully left blank
+    public void onTimelineChanged(Timeline timeline, Object manifest, int reason) {
+
     }
 
     @Override
@@ -177,13 +177,13 @@ public class FuMediaPlayer implements ExoPlayer.EventListener {
     }
 
     @Override
-    public void onPositionDiscontinuity() {
+    public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
         // Purposefully left blank
     }
 
     @Override
-    public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
-        // Purposefully left blank
+    public void onSeekProcessed() {
+
     }
 
     @Override
@@ -197,10 +197,20 @@ public class FuMediaPlayer implements ExoPlayer.EventListener {
     }
 
     @Override
+    public void onShuffleModeEnabledChanged(boolean shuffleModeEnabled) {
+
+    }
+
+    @Override
     public void onPlayerError(ExoPlaybackException exception) {
         for (ExoPlayerListener listener : listeners) {
             listener.onError(this, exception);
         }
+    }
+
+    @Override
+    public void onPositionDiscontinuity(int reason) {
+
     }
 
     /**
@@ -728,7 +738,7 @@ public class FuMediaPlayer implements ExoPlayer.EventListener {
         }
 
         @Override
-        public void onAudioTrackUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
+        public void onAudioSinkUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
             if (internalErrorListener != null) {
                 internalErrorListener.onAudioTrackUnderrun(bufferSize, bufferSizeMs, elapsedSinceLastFeedMs);
             }

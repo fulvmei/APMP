@@ -14,7 +14,9 @@ import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.LoadControl;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.PlayerMessage;
 import com.google.android.exoplayer2.Renderer;
+import com.google.android.exoplayer2.SeekParameters;
 import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.audio.AudioRendererEventListener;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
@@ -316,6 +318,18 @@ public class ExoMediaPlayer implements ExoPlayer {
         mAudioRendererEventListeners.remove(listener);
     }
 
+    @Nullable
+    @Override
+    public VideoComponent getVideoComponent() {
+        return null;
+    }
+
+    @Nullable
+    @Override
+    public TextComponent getTextComponent() {
+        return null;
+    }
+
     @Override
     public void addListener(Player.EventListener listener) {
         mExoPlayer.addListener(listener);
@@ -369,6 +383,11 @@ public class ExoMediaPlayer implements ExoPlayer {
     }
 
     @Override
+    public PlayerMessage createMessage(PlayerMessage.Target target) {
+        return null;
+    }
+
+    @Override
     public void setPlayWhenReady(boolean playWhenReady) {
         mExoPlayer.setPlayWhenReady(playWhenReady);
     }
@@ -386,6 +405,16 @@ public class ExoMediaPlayer implements ExoPlayer {
     @Override
     public int getRepeatMode() {
         return mExoPlayer.getRepeatMode();
+    }
+
+    @Override
+    public void setShuffleModeEnabled(boolean shuffleModeEnabled) {
+
+    }
+
+    @Override
+    public boolean getShuffleModeEnabled() {
+        return false;
     }
 
     @Override
@@ -429,6 +458,11 @@ public class ExoMediaPlayer implements ExoPlayer {
     }
 
     @Override
+    public void stop(boolean reset) {
+
+    }
+
+    @Override
     public void release() {
         mExoPlayer.release();
         removeSurfaceCallbacks();
@@ -448,6 +482,11 @@ public class ExoMediaPlayer implements ExoPlayer {
     @Override
     public void blockingSendMessages(ExoPlayerMessage... messages) {
         mExoPlayer.blockingSendMessages(messages);
+    }
+
+    @Override
+    public void setSeekParameters(@Nullable SeekParameters seekParameters) {
+
     }
 
     @Override
@@ -488,6 +527,16 @@ public class ExoMediaPlayer implements ExoPlayer {
     @Override
     public int getCurrentWindowIndex() {
         return mExoPlayer.getCurrentWindowIndex();
+    }
+
+    @Override
+    public int getNextWindowIndex() {
+        return 0;
+    }
+
+    @Override
+    public int getPreviousWindowIndex() {
+        return 0;
     }
 
     @Override
@@ -676,9 +725,9 @@ public class ExoMediaPlayer implements ExoPlayer {
         }
 
         @Override
-        public void onAudioTrackUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
+        public void onAudioSinkUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
             for (AudioRendererEventListener listener : mAudioRendererEventListeners) {
-                listener.onAudioTrackUnderrun(bufferSize, bufferSizeMs, elapsedSinceLastFeedMs);
+                listener.onAudioSinkUnderrun(bufferSize, bufferSizeMs, elapsedSinceLastFeedMs);
             }
         }
 

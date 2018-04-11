@@ -1,10 +1,10 @@
 package com.chengfu.fuexoplayer.widget;
 
 import com.chengfu.fuexoplayer.ExoMediaPlayer;
+import com.chengfu.fuexoplayer.ExoPlayException;
 import com.chengfu.fuexoplayer.IVideoController;
 import com.chengfu.fuexoplayer.video.IVideoPlay;
 import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.ExoPlayer.EventListener;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
@@ -41,14 +41,26 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
     // STATIC
     public static final String TAG = "ExoVideoView";
 
+    // The volume we set the media player to when we lose audio focus, but are
+    // allowed to reduce the volume instead of stopping playback.
+    public static final float VOLUME_DUCK = 0.2f;
+
+    // we don't have audio focus, and can't duck (play at a low volume)
+    private static final int AUDIO_NO_FOCUS_NO_DUCK = 0;
+    // we don't have focus, but can duck (play at a low volume)
+    private static final int AUDIO_NO_FOCUS_CAN_DUCK = 1;
+    // we have full audio focus
+    private static final int AUDIO_FOCUSED = 2;
+
     private final Context mContext;
-    private final ExoPlayerListener mExoPlayerListener;
+    private PowerManager.WakeLock mWakeLock = null;
+
 
     private ExoMediaPlayer mExoMediaPlayer;
+    private final ExoPlayerListener mExoPlayerListener;
     private IVideoController mVideoController;
     private VideoTextureView mVideoTextureView;
     private Surface mSurface;
-
     private String mVideoPath;
 
     private boolean mReleaseOnDetachFromWindow;
@@ -56,9 +68,9 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
     private boolean mShowControllerWhenPrepared;
 
     private AudioManager mAudioManager;
-    private AudioFocusHelper mAudioFocusHelper;
-    private boolean handleAudioFocus = true;
-    private PowerManager.WakeLock mWakeLock = null;
+    private boolean mPlayOnFocusGain;
+    private int mCurrentAudioFocusState = AUDIO_NO_FOCUS_NO_DUCK;
+
 
     private ExoVideoView.ScaleType mScaleType = ExoVideoView.ScaleType.FIT_CENTER;
 
@@ -74,17 +86,17 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
 
     private VideoListener mVideoListener;
 
-    public static interface VideoListener {
+    public interface VideoListener {
 
-        public void onReady();
+        void onReady();
 
-        public void onPlayPauseChanged(boolean play);
+        void onPlayPauseChanged(boolean play);
 
-        public void onLoadingChanged(boolean isLoading);
+        void onLoadingChanged(boolean isLoading);
 
-        public void onError(ExoPlaybackException error);
+        void onError(ExoPlaybackException error);
 
-        public void onCompletion();
+        void onCompletion();
     }
 
     public ExoVideoView(Context context) {
@@ -103,7 +115,6 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
         mExoPlayerListener = new ExoPlayerListener();
 
         mAudioManager = (AudioManager) context.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-        mAudioFocusHelper = new AudioFocusHelper();
 
         PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         mWakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE, TAG);
@@ -190,11 +201,6 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
 
     public boolean getReleaseOnDetachFromWindow() {
         return mReleaseOnDetachFromWindow;
-    }
-
-    public void setHandleAudioFocus(boolean handleAudioFocus) {
-        mAudioFocusHelper.abandonFocus();
-        this.handleAudioFocus = handleAudioFocus;
     }
 
     @Override
@@ -308,7 +314,7 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
     @Override
     public void start() {
         keepScreenOn(true);
-        mAudioFocusHelper.requestFocus();
+        tryToGetAudioFocus();
 
         mExoMediaPlayer.setPlayWhenReady(true);
         mPlayRequested = true;
@@ -317,7 +323,6 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
     @Override
     public void pause() {
         keepScreenOn(false);
-        mAudioFocusHelper.abandonFocus();
 
         mExoMediaPlayer.setPlayWhenReady(false);
         mPlayRequested = false;
@@ -343,7 +348,7 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
     @Override
     public void suspend() {
         keepScreenOn(false);
-        mAudioFocusHelper.abandonFocus();
+        giveUpAudioFocus();
 
         mExoMediaPlayer.release();
         mPlayRequested = false;
@@ -352,6 +357,7 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
     @Override
     public void stopPlayback(boolean clearSurface) {
         keepScreenOn(false);
+        giveUpAudioFocus();
         mExoMediaPlayer.stop();
         mPlayRequested = false;
         if (clearSurface) {
@@ -417,86 +423,79 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
         mExoMediaPlayer.release();
     }
 
-    protected class AudioFocusHelper implements AudioManager.OnAudioFocusChangeListener {
-        protected boolean startRequested = false;
-        protected boolean pausedForLoss = false;
-        protected int currentFocus = 0;
-
-        @Override
-        public void onAudioFocusChange(int focusChange) {
-            if (!handleAudioFocus || currentFocus == focusChange) {
-                return;
-            }
-
-            currentFocus = focusChange;
-            switch (focusChange) {
-                case AudioManager.AUDIOFOCUS_GAIN:
-                case AudioManager.AUDIOFOCUS_GAIN_TRANSIENT:
-                    if (startRequested || pausedForLoss) {
-                        start();
-                        startRequested = false;
-                        pausedForLoss = false;
-                    }
-                    break;
-                case AudioManager.AUDIOFOCUS_LOSS:
-                    if (isPlaying()) {
-                        pausedForLoss = true;
-                        pause();
-                    }
-                    break;
-                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
-                case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
-                    if (isPlaying()) {
-                        pausedForLoss = true;
-                        pause();
-                    }
-                    break;
-            }
-        }
-
-        /**
-         * Requests to obtain the audio focus
-         *
-         * @return True if the focus was granted
-         */
-        public boolean requestFocus() {
-            if (!handleAudioFocus || currentFocus == AudioManager.AUDIOFOCUS_GAIN) {
-                return true;
-            }
-
-            if (mAudioManager == null) {
-                return false;
-            }
-
-            int status = mAudioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
-            if (AudioManager.AUDIOFOCUS_REQUEST_GRANTED == status) {
-                currentFocus = AudioManager.AUDIOFOCUS_GAIN;
-                return true;
-            }
-
-            startRequested = true;
-            return false;
-        }
-
-        /**
-         * Requests the system to drop the audio focus
-         *
-         * @return True if the focus was lost
-         */
-        public boolean abandonFocus() {
-            if (!handleAudioFocus) {
-                return true;
-            }
-
-            if (mAudioManager == null) {
-                return false;
-            }
-
-            startRequested = false;
-            int status = mAudioManager.abandonAudioFocus(this);
-            return AudioManager.AUDIOFOCUS_REQUEST_GRANTED == status;
+    private void tryToGetAudioFocus() {
+        int result =
+                mAudioManager.requestAudioFocus(
+                        mOnAudioFocusChangeListener,
+                        AudioManager.STREAM_MUSIC,
+                        AudioManager.AUDIOFOCUS_GAIN);
+        if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+            mCurrentAudioFocusState = AUDIO_FOCUSED;
+        } else {
+            mCurrentAudioFocusState = AUDIO_NO_FOCUS_NO_DUCK;
         }
     }
+
+    private void giveUpAudioFocus() {
+        if (mAudioManager.abandonAudioFocus(mOnAudioFocusChangeListener)
+                == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+            mCurrentAudioFocusState = AUDIO_NO_FOCUS_NO_DUCK;
+        }
+    }
+
+    private void configurePlayerState() {
+        if (mCurrentAudioFocusState == AUDIO_NO_FOCUS_NO_DUCK) {
+            // We don't have audio focus and can't duck, so we have to pause
+            pause();
+        } else {
+
+            int maxSystemMusicVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_RING);
+            int currentSystemMusicVolume = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+
+            if (mCurrentAudioFocusState == AUDIO_NO_FOCUS_CAN_DUCK) {
+                // We're permitted to play, but only if we 'duck', ie: play softly
+                setVolume(VOLUME_DUCK);
+            } else {
+                setVolume((float) currentSystemMusicVolume / (float) maxSystemMusicVolume);
+            }
+
+            // If we were playing when we lost focus, we need to resume playing.
+            if (mPlayOnFocusGain) {
+                mExoMediaPlayer.setPlayWhenReady(true);
+                mPlayOnFocusGain = false;
+            }
+        }
+    }
+
+    private final AudioManager.OnAudioFocusChangeListener mOnAudioFocusChangeListener =
+            new AudioManager.OnAudioFocusChangeListener() {
+                @Override
+                public void onAudioFocusChange(int focusChange) {
+                    System.out.println("qqqqqqqqq focusChange=" + focusChange);
+                    switch (focusChange) {
+                        case AudioManager.AUDIOFOCUS_GAIN:
+                            mCurrentAudioFocusState = AUDIO_FOCUSED;
+                            break;
+                        case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                            // Audio focus was lost, but it's possible to duck (i.e.: play quietly)
+                            mCurrentAudioFocusState = AUDIO_NO_FOCUS_CAN_DUCK;
+                            break;
+                        case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                            // Lost audio focus, but will gain it back (shortly), so note whether
+                            // playback should resume
+                            mCurrentAudioFocusState = AUDIO_NO_FOCUS_NO_DUCK;
+                            mPlayOnFocusGain = isPlaying();
+                            break;
+                        case AudioManager.AUDIOFOCUS_LOSS:
+                            // Lost audio focus, probably "permanently"
+                            mCurrentAudioFocusState = AUDIO_NO_FOCUS_NO_DUCK;
+                            break;
+                    }
+                    if (mExoMediaPlayer != null) {
+                        configurePlayerState();
+                    }
+                }
+            };
 
     private final SurfaceTextureListener mSurfaceTextureListener = new SurfaceTextureListener() {
 
@@ -536,12 +535,12 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
 
     };
 
-    private final class ExoPlayerListener
-            implements VideoRendererEventListener, EventListener {
+    public class ExoPlayerListener
+            implements VideoRendererEventListener, Player.EventListener {
 
         @Override
-        public void onTimelineChanged(Timeline timeline, Object manifest) {
-            Log.i(TAG, "onTimelineChanged---timeline=" + timeline + ",manifest=" + manifest);
+        public void onTimelineChanged(Timeline timeline, Object manifest, int reason) {
+
         }
 
         @Override
@@ -594,22 +593,37 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
         }
 
         @Override
+        public void onShuffleModeEnabledChanged(boolean shuffleModeEnabled) {
+
+        }
+
+        @Override
         public void onPlayerError(ExoPlaybackException error) {
             Log.i(TAG, "onPlayerError---error=" + error);
             keepScreenOn(false);
             if (mVideoListener != null) {
                 mVideoListener.onError(error);
+//                if (error != null) {
+//                    mVideoListener.onError(ExoPlayException.create(error.type, error.getCause(), error.rendererIndex));
+//                } else {
+//                    mVideoListener.onError(ExoPlayException.createForUnexpected(new RuntimeException("播放出错")));
+//                }
             }
         }
 
         @Override
-        public void onPositionDiscontinuity() {
-            Log.i(TAG, "onPositionDiscontinuity");
+        public void onPositionDiscontinuity(int reason) {
+            Log.i(TAG, "onPositionDiscontinuity  reason=" + reason);
         }
 
         @Override
         public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
             Log.i(TAG, "onPlaybackParametersChanged---playbackParameters=" + playbackParameters);
+        }
+
+        @Override
+        public void onSeekProcessed() {
+
         }
 
         @Override

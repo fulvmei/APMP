@@ -19,7 +19,6 @@ import com.google.android.exoplayer2.decoder.DecoderCounters;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 
-import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -32,7 +31,7 @@ import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.support.v4.app.NotificationCompat;
+//import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.RemoteViews;
 
@@ -66,7 +65,7 @@ public class ExoAudioPlayService extends Service implements IAudioPlay {
 
     private boolean mAudioFocusPause;
 
-    private AudioNotificationManager mAudioNotificationManager;
+//    private AudioNotificationManager mAudioNotificationManager;
 
     public static interface AudioListener {
         public void onLoadingChanged(boolean isLoading);
@@ -109,7 +108,7 @@ public class ExoAudioPlayService extends Service implements IAudioPlay {
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
 
         // 获取WIFI休眠唤醒锁
-        mWifiLock = ((WifiManager) getSystemService(WIFI_SERVICE)).createWifiLock(WifiManager.WIFI_MODE_FULL, TAG);
+        mWifiLock = ((WifiManager) getApplicationContext().getSystemService(WIFI_SERVICE)).createWifiLock(WifiManager.WIFI_MODE_FULL, TAG);
 
         mAudioManager.requestAudioFocus(mAudioFocusChangeListener, AudioManager.STREAM_MUSIC,
                 AudioManager.AUDIOFOCUS_GAIN);
@@ -117,8 +116,8 @@ public class ExoAudioPlayService extends Service implements IAudioPlay {
 
         initMediaPlayer();
 
-        mAudioNotificationManager = new AudioNotificationManager(this);
-        mAudioNotificationManager.startNotification();
+//        mAudioNotificationManager = new AudioNotificationManager(this);
+//        mAudioNotificationManager.startNotification();
     }
 
     @Override
@@ -329,7 +328,7 @@ public class ExoAudioPlayService extends Service implements IAudioPlay {
     private final class ExoPlayerListener implements AudioRendererEventListener, EventListener {
 
         @Override
-        public void onTimelineChanged(Timeline timeline, Object manifest) {
+        public void onTimelineChanged(Timeline timeline, Object manifest, int reason) {
 
         }
 
@@ -347,7 +346,6 @@ public class ExoAudioPlayService extends Service implements IAudioPlay {
 
         @Override
         public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
-            System.out.println("StateChanged playWhenReady=" + playWhenReady + " playbackState=" + playbackState);
             if (playbackState == Player.STATE_READY && mAudioListener != null) {
                 mAudioListener.onLoadingChanged(false);
             }
@@ -364,17 +362,28 @@ public class ExoAudioPlayService extends Service implements IAudioPlay {
         }
 
         @Override
+        public void onPositionDiscontinuity(int reason) {
+
+        }
+
+        @Override
         public void onRepeatModeChanged(int repeatMode) {
 
         }
 
         @Override
-        public void onPositionDiscontinuity() {
+        public void onShuffleModeEnabledChanged(boolean shuffleModeEnabled) {
+
+        }
+
+
+        @Override
+        public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
 
         }
 
         @Override
-        public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
+        public void onSeekProcessed() {
 
         }
 
@@ -400,7 +409,7 @@ public class ExoAudioPlayService extends Service implements IAudioPlay {
         }
 
         @Override
-        public void onAudioTrackUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
+        public void onAudioSinkUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
 
         }
 

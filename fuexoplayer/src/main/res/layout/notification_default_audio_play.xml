@@ -29,8 +29,7 @@
             android:fadingEdge="horizontal"
             android:gravity="center_vertical"
             android:singleLine="true"
-            android:text="播放标题111111111111111111111111111111111111111111111111"
-            android:textAppearance="@style/TextAppearance.Compat.Notification.Title.Media" />
+            android:text="播放标题111111111111111111111111111111111111111111111111" />
 
         <TextView
             android:id="@+id/media_tvInfo"
@@ -39,8 +38,7 @@
             android:layout_marginTop="5dp"
             android:gravity="center_vertical"
             android:singleLine="true"
-            android:text="播放信息1111111111111111111111111111111111111111111111111111"
-            android:textAppearance="@style/TextAppearance.Compat.Notification.Info.Media" />
+            android:text="播放信息1111111111111111111111111111111111111111111111111111" />
     </LinearLayout>
 
     <ImageButton

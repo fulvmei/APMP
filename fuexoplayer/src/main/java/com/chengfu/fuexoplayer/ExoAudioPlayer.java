@@ -1,10 +1,13 @@
 package com.chengfu.fuexoplayer;
 
 import android.content.Context;
+import android.media.AudioManager;
+import android.net.wifi.WifiManager;
 import android.util.Log;
 
 
 import com.chengfu.fuexoplayer.audio.IAudioPlay;
+import com.chengfu.fuexoplayer.widget.ExoVideoView;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
@@ -24,27 +27,45 @@ public class ExoAudioPlayer implements IAudioPlay {
     // STATIC
     public static final String TAG = "ExoAudioPlayer";
 
+    // The volume we set the media player to when we lose audio focus, but are
+    // allowed to reduce the volume instead of stopping playback.
+    public static final float VOLUME_DUCK = 0.2f;
+
+    // we don't have audio focus, and can't duck (play at a low volume)
+    private static final int AUDIO_NO_FOCUS_NO_DUCK = 0;
+    // we don't have focus, but can duck (play at a low volume)
+    private static final int AUDIO_NO_FOCUS_CAN_DUCK = 1;
+    // we have full audio focus
+    private static final int AUDIO_FOCUSED = 2;
+
     private final Context mContext;
     private final ExoPlayerListener mExoPlayerListener;
 
     private ExoMediaPlayer mExoMediaPlayer;
     private IAudioController mAudioController;
+    private boolean mPlayOnFocusGain;
 
     private String mAudioPath;
     private AudioListener mAudioListener;
 
-    public static interface AudioListener {
-        public void onLoadingChanged(boolean isLoading);
+    private int mCurrentAudioFocusState = AUDIO_NO_FOCUS_NO_DUCK;
+    private final AudioManager mAudioManager;
 
-        public void onPlayPauseChanged(boolean play);
 
-        public void onError(ExoPlaybackException error);
+    public  interface AudioListener {
+         void onLoadingChanged(boolean isLoading);
 
-        public void onCompletion();
+         void onPlayPauseChanged(boolean play);
+
+         void onError(ExoPlaybackException error);
+
+         void onCompletion();
     }
 
     public ExoAudioPlayer(Context context) {
         mContext = context;
+
+        mAudioManager = (AudioManager) context.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
 
         mExoPlayerListener = new ExoPlayerListener();
         initPlayer();
@@ -105,18 +126,22 @@ public class ExoAudioPlayer implements IAudioPlay {
 
     @Override
     public void start() {
+        tryToGetAudioFocus();
         mExoMediaPlayer.setPlayWhenReady(true);
     }
 
     @Override
     public void pause() {
         mExoMediaPlayer.setPlayWhenReady(false);
-
+        if (mAudioListener != null) {
+            mAudioListener.onPlayPauseChanged(isPlaying());
+        }
     }
 
 
     @Override
     public void stopPlayback() {
+        giveUpAudioFocus();
         mExoMediaPlayer.stop();
     }
 
@@ -178,12 +203,86 @@ public class ExoAudioPlayer implements IAudioPlay {
         mExoMediaPlayer.release();
     }
 
+    private void tryToGetAudioFocus() {
+        int result =
+                mAudioManager.requestAudioFocus(
+                        mOnAudioFocusChangeListener,
+                        AudioManager.STREAM_MUSIC,
+                        AudioManager.AUDIOFOCUS_GAIN);
+        if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+            mCurrentAudioFocusState = AUDIO_FOCUSED;
+        } else {
+            mCurrentAudioFocusState = AUDIO_NO_FOCUS_NO_DUCK;
+        }
+    }
+
+    private void giveUpAudioFocus() {
+        if (mAudioManager.abandonAudioFocus(mOnAudioFocusChangeListener)
+                == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+            mCurrentAudioFocusState = AUDIO_NO_FOCUS_NO_DUCK;
+        }
+    }
+
+    private void configurePlayerState() {
+        if (mCurrentAudioFocusState == AUDIO_NO_FOCUS_NO_DUCK) {
+            // We don't have audio focus and can't duck, so we have to pause
+            pause();
+        } else {
+
+            int maxSystemMusicVolume = mAudioManager.getStreamMaxVolume(AudioManager.STREAM_RING);
+            int currentSystemMusicVolume = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+
+            if (mCurrentAudioFocusState == AUDIO_NO_FOCUS_CAN_DUCK) {
+                // We're permitted to play, but only if we 'duck', ie: play softly
+                setVolume(VOLUME_DUCK);
+            } else {
+                setVolume((float) currentSystemMusicVolume / (float) maxSystemMusicVolume);
+            }
+
+            // If we were playing when we lost focus, we need to resume playing.
+            if (mPlayOnFocusGain) {
+                mExoMediaPlayer.setPlayWhenReady(true);
+                mPlayOnFocusGain = false;
+            }
+        }
+    }
+
+    private final AudioManager.OnAudioFocusChangeListener mOnAudioFocusChangeListener =
+            new AudioManager.OnAudioFocusChangeListener() {
+                @Override
+                public void onAudioFocusChange(int focusChange) {
+                    switch (focusChange) {
+                        case AudioManager.AUDIOFOCUS_GAIN:
+                            mCurrentAudioFocusState = AUDIO_FOCUSED;
+                            break;
+                        case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK:
+                            // Audio focus was lost, but it's possible to duck (i.e.: play quietly)
+                            mCurrentAudioFocusState = AUDIO_NO_FOCUS_CAN_DUCK;
+                            break;
+                        case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT:
+                            // Lost audio focus, but will gain it back (shortly), so note whether
+                            // playback should resume
+                            mCurrentAudioFocusState = AUDIO_NO_FOCUS_NO_DUCK;
+                            mPlayOnFocusGain = isPlaying();
+                            break;
+                        case AudioManager.AUDIOFOCUS_LOSS:
+                            // Lost audio focus, probably "permanently"
+                            mCurrentAudioFocusState = AUDIO_NO_FOCUS_NO_DUCK;
+                            break;
+                    }
+                    if (mExoMediaPlayer != null) {
+                        configurePlayerState();
+                    }
+                }
+            };
+
     private final class ExoPlayerListener
             implements Player.EventListener {
 
+
         @Override
-        public void onTimelineChanged(Timeline timeline, Object manifest) {
-            Log.i(TAG, "onTimelineChanged---timeline=" + timeline + ",manifest=" + manifest);
+        public void onTimelineChanged(Timeline timeline, Object manifest, int reason) {
+//            Log.i(TAG, "onTimelineChanged---timeline=" + timeline + ",manifest=" + manifest);
         }
 
         @Override
@@ -207,6 +306,9 @@ public class ExoAudioPlayer implements IAudioPlay {
                 mAudioListener.onLoadingChanged(false);
             }
             if (playbackState == Player.STATE_READY) {
+                if (mAudioListener != null) {
+                    mAudioListener.onPlayPauseChanged(isPlaying());
+                }
                 if (mAudioController != null) {
                     mAudioController.setEnabled(true);
                 }
@@ -228,21 +330,36 @@ public class ExoAudioPlayer implements IAudioPlay {
         }
 
         @Override
+        public void onShuffleModeEnabledChanged(boolean shuffleModeEnabled) {
+            Log.i(TAG, "onShuffleModeEnabledChanged---shuffleModeEnabled=" + shuffleModeEnabled);
+        }
+
+        @Override
         public void onPlayerError(ExoPlaybackException error) {
             Log.i(TAG, "onPlayerError---error=" + error);
             if (mAudioListener != null) {
                 mAudioListener.onError(error);
+//                if (error != null) {
+//                    mAudioListener.onError(ExoPlayException.create(error.type, error.getCause(), error.rendererIndex));
+//                } else {
+//                    mAudioListener.onError(ExoPlayException.createForUnexpected(new RuntimeException("播放出错")));
+//                }
             }
         }
 
         @Override
-        public void onPositionDiscontinuity() {
-            Log.i(TAG, "onPositionDiscontinuity");
+        public void onPositionDiscontinuity(int reason) {
+            Log.i(TAG, "onPositionDiscontinuity---reason=" + reason);
         }
 
         @Override
         public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
             Log.i(TAG, "onPlaybackParametersChanged---playbackParameters=" + playbackParameters);
+        }
+
+        @Override
+        public void onSeekProcessed() {
+            Log.i(TAG, "onSeekProcessed");
         }
     }
 }
