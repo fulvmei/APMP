@@ -12,7 +12,7 @@ import com.chengfu.fuexoplayer.widget.ExoVideoView;
  * Created by ChengFu on 2018/3/15.
  */
 
-public class MusicPlayerActivity extends AppCompatActivity implements ExoAudioPlayer.AudioListener {
+public class MusicPlayerActivity extends AppCompatActivity {
 
     private String url = "http://hls1.gzstv.com/livegztv/xinwen/index.m3u8";
     private ExoAudioPlayer audioPlayer;
@@ -46,27 +46,27 @@ public class MusicPlayerActivity extends AppCompatActivity implements ExoAudioPl
 
     private void initAudioPlayer() {
         audioPlayer = new ExoAudioPlayer(this);
-        audioPlayer.setAudioListener(this);
+//        audioPlayer.setAudioListener(this);
 //        audioPlayer.setVideoController(mAudioPlayerController);
     }
 
-    @Override
-    public void onLoadingChanged(boolean isLoading) {
-
-    }
-
-    @Override
-    public void onPlayPauseChanged(boolean play) {
-
-    }
-
-    @Override
-    public void onError(ExoPlayException error) {
-
-    }
-
-    @Override
-    public void onCompletion() {
-
-    }
+//    @Override
+//    public void onLoadingChanged(boolean isLoading) {
+//
+//    }
+//
+//    @Override
+//    public void onPlayPauseChanged(boolean play) {
+//
+//    }
+//
+//    @Override
+//    public void onError(ExoPlayException error) {
+//
+//    }
+//
+//    @Override
+//    public void onCompletion() {
+//
+//    }
 }

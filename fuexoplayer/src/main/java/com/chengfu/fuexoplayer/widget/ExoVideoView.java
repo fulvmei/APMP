@@ -3,6 +3,7 @@ package com.chengfu.fuexoplayer.widget;
 import com.chengfu.fuexoplayer.ExoMediaPlayer;
 import com.chengfu.fuexoplayer.ExoPlayException;
 import com.chengfu.fuexoplayer.IVideoController;
+import com.chengfu.fuexoplayer.code.source.builder.MediaSourceBuilder;
 import com.chengfu.fuexoplayer.video.IVideoPlay;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.Format;
@@ -136,6 +137,7 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
     }
 
     private void initPlayer() {
+
         mExoMediaPlayer = new ExoMediaPlayer(mContext);
 
         mExoMediaPlayer.addVideoRendererEventListener(mExoPlayerListener);
@@ -284,8 +286,16 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
         }
     }
 
+    public void setMediaSourceBuilder(MediaSourceBuilder builder) {
+
+    }
+
     @Override
     public void setVideoPath(String path) {
+        setVideoPath(path, null);
+    }
+
+    public void setVideoPath(String path, MediaSourceBuilder builder) {
         if (path == null) {
             stopPlayback(true);
             mVideoTextureView.clearSurface();
@@ -296,7 +306,7 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
         }
         mVideoPath = path;
         mExoMediaPlayer.setPlayWhenReady(false);
-        mExoMediaPlayer.prepare(path);
+        mExoMediaPlayer.prepare(path, builder);
         mVideoTextureView.clearSurface();
         if (mVideoController != null) {
             mVideoController.hideNow();

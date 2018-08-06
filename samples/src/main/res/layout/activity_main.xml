@@ -7,11 +7,17 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <com.chengfu.fuexoplayer.widget.ExoVideoView
+  <!--  <com.chengfu.fuexoplayer.widget.ExoVideoView
+        android:id="@+id/exoVideoView"
         android:layout_width="match_parent"
         android:layout_height="200dp">
 
-    </com.chengfu.fuexoplayer.widget.ExoVideoView>
+    </com.chengfu.fuexoplayer.widget.ExoVideoView>-->
+
+    <VideoView
+        android:id="@+id/video"
+        android:layout_width="match_parent"
+        android:layout_height="200dp" />
 
     <Button
         android:id="@+id/music_samples"

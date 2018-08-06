@@ -226,7 +226,7 @@ public class FuMediaPlayer implements ExoPlayer.EventListener {
     }
 
     public void setUri(@Nullable Uri uri) {
-        setMediaSource(uri != null ? mediaSourceProvider.generate(context, mainHandler, uri, bandwidthMeter) : null);
+        setMediaSource(uri != null ? mediaSourceProvider.generate(context, mainHandler, uri, bandwidthMeter, null) : null);
     }
 
     public void setMediaSource(@Nullable MediaSource source) {
@@ -303,7 +303,7 @@ public class FuMediaPlayer implements ExoPlayer.EventListener {
         }
 
         // Maps the available tracks
-        RendererType[] types = new RendererType[] {RendererType.AUDIO, RendererType.VIDEO, RendererType.CLOSED_CAPTION, RendererType.METADATA};
+        RendererType[] types = new RendererType[]{RendererType.AUDIO, RendererType.VIDEO, RendererType.CLOSED_CAPTION, RendererType.METADATA};
         for (RendererType type : types) {
             int exoPlayerTrackIndex = getExoPlayerTrackType(type);
             if (mappedTrackInfo.length > exoPlayerTrackIndex) {
@@ -342,7 +342,7 @@ public class FuMediaPlayer implements ExoPlayer.EventListener {
         }
 
         // Creates the track selection override
-        int[] tracks = new int[] {index};
+        int[] tracks = new int[]{index};
         TrackSelection.Factory factory = tracks.length == 1 ? new FixedTrackSelection.Factory() : adaptiveTrackSelectionFactory;
         MappingTrackSelector.SelectionOverride selectionOverride = new MappingTrackSelector.SelectionOverride(factory, exoPlayerTrackIndex, tracks);
 
@@ -460,7 +460,7 @@ public class FuMediaPlayer implements ExoPlayer.EventListener {
      * By default, no attempt is made to keep the device awake during playback.
      *
      * @param context the Context to use
-     * @param mode the power/wake mode to set
+     * @param mode    the power/wake mode to set
      * @see PowerManager
      */
     public void setWakeMode(Context context, int mode) {
@@ -586,7 +586,7 @@ public class FuMediaPlayer implements ExoPlayer.EventListener {
             // see events when that is the only change.  Additionally, on some devices we get states ordered as
             // [seeking, ready, buffering, ready] while on others we get [seeking, buffering, ready]
             boolean informSeekCompletion = stateStore.matchesHistory(new int[]{StateStore.STATE_SEEKING, ExoPlayer.STATE_BUFFERING, ExoPlayer.STATE_READY}, true);
-            informSeekCompletion |= stateStore.matchesHistory(new int[] {ExoPlayer.STATE_BUFFERING, StateStore.STATE_SEEKING, ExoPlayer.STATE_READY}, true);
+            informSeekCompletion |= stateStore.matchesHistory(new int[]{ExoPlayer.STATE_BUFFERING, StateStore.STATE_SEEKING, ExoPlayer.STATE_READY}, true);
             informSeekCompletion |= stateStore.matchesHistory(new int[]{StateStore.STATE_SEEKING, ExoPlayer.STATE_READY, ExoPlayer.STATE_BUFFERING, ExoPlayer.STATE_READY}, true);
 
             for (ExoPlayerListener listener : listeners) {

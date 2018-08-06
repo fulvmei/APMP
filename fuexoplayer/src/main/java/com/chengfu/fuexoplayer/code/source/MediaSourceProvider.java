@@ -10,6 +10,7 @@ import android.support.annotation.Nullable;
 
 import com.chengfu.fuexoplayer.ExoMedia;
 import com.chengfu.fuexoplayer.code.source.builder.DefaultMediaSourceBuilder;
+import com.chengfu.fuexoplayer.code.source.builder.HlsMediaSourceBuilder;
 import com.chengfu.fuexoplayer.code.source.builder.MediaSourceBuilder;
 import com.chengfu.fuexoplayer.util.BuildConfig;
 import com.chengfu.fuexoplayer.util.MediaSourceUtil;
@@ -29,7 +30,11 @@ public class MediaSourceProvider {
     protected String userAgent = String.format(USER_AGENT_FORMAT, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, Build.VERSION.RELEASE, Build.MODEL);
 
     @NonNull
-    public MediaSource generate(@NonNull Context context, @NonNull Handler handler, @NonNull Uri uri, @Nullable TransferListener<? super DataSource> transferListener ) {
+    public MediaSource generate(@NonNull Context context, @NonNull Handler handler, @NonNull Uri uri, @Nullable TransferListener<? super DataSource> transferListener, MediaSourceBuilder builder) {
+        if (builder != null) {
+            return builder.build(context, uri, userAgent, handler, transferListener);
+        }
+
         String extension = MediaSourceUtil.getExtension(uri);
 
         // Searches for a registered builder
@@ -39,7 +44,7 @@ public class MediaSourceProvider {
         }
 
         // If a registered builder wasn't found then use the default
-        MediaSourceBuilder builder = sourceTypeBuilder != null ? sourceTypeBuilder.builder : new DefaultMediaSourceBuilder();
+        builder = sourceTypeBuilder != null ? sourceTypeBuilder.builder : new DefaultMediaSourceBuilder();
         return builder.build(context, uri, userAgent, handler, transferListener);
     }
 

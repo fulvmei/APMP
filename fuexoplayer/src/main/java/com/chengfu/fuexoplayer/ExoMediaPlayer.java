@@ -6,6 +6,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 import com.chengfu.fuexoplayer.code.renderer.RendererProvider;
 import com.chengfu.fuexoplayer.code.source.MediaSourceProvider;
+import com.chengfu.fuexoplayer.code.source.builder.MediaSourceBuilder;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.ExoPlayer;
@@ -349,17 +350,33 @@ public class ExoMediaPlayer implements ExoPlayer {
         prepare(Uri.parse(mediaPath));
     }
 
+    public void prepare(String mediaPath, MediaSourceBuilder builder) {
+        prepare(Uri.parse(mediaPath), builder);
+    }
+
     public void prepare(String mediaPath, boolean resetPosition, boolean resetState) {
+        prepare(mediaPath, resetPosition, resetState, null);
+    }
+
+    public void prepare(String mediaPath, boolean resetPosition, boolean resetState, MediaSourceBuilder builder) {
         prepare(Uri.parse(mediaPath), resetPosition, resetState);
     }
 
     public void prepare(Uri mediaUri) {
-        prepare(mediaUri != null ? mMediaSourceProvider.generate(mContext, mMainHandler, mediaUri, mBandwidthMeter)
+        prepare(mediaUri, null);
+    }
+
+    public void prepare(Uri mediaUri, MediaSourceBuilder builder) {
+        prepare(mediaUri != null ? mMediaSourceProvider.generate(mContext, mMainHandler, mediaUri, mBandwidthMeter, builder)
                 : null);
     }
 
     public void prepare(Uri mediaUri, boolean resetPosition, boolean resetState) {
-        prepare(mediaUri != null ? mMediaSourceProvider.generate(mContext, mMainHandler, mediaUri, mBandwidthMeter)
+        prepare(mediaUri, resetPosition, resetState, null);
+    }
+
+    public void prepare(Uri mediaUri, boolean resetPosition, boolean resetState, MediaSourceBuilder builder) {
+        prepare(mediaUri != null ? mMediaSourceProvider.generate(mContext, mMainHandler, mediaUri, mBandwidthMeter, builder)
                 : null, resetPosition, resetState);
     }
 
@@ -657,7 +674,7 @@ public class ExoMediaPlayer implements ExoPlayer {
             for (VideoRendererEventListener listener : mVideoRendererEventListeners) {
                 listener.onVideoInputFormatChanged(format);
             }
-         }
+        }
 
         @Override
         public void onDroppedFrames(int count, long elapsedMs) {

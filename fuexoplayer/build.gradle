@@ -8,8 +8,8 @@ android {
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 27
-        versionCode 20
-        versionName "1.5.1"
+        versionCode 22
+        versionName "1.8.0"
     }
     buildTypes {
         release {
@@ -46,7 +46,7 @@ publish {
     userOrg = 'fu-cheng'
     groupId = 'com.chengfu.fuexoplayer'
     artifactId = 'fuexoplayer'
-    publishVersion = '1.5.1'
+    publishVersion = '1.8.0'
     desc = 'a media player based on exoplayer'
     website = "https://bintray.com/fu-cheng/maven/fuexoplayer"
 }

@@ -7,6 +7,7 @@ import android.util.Log;
 
 
 import com.chengfu.fuexoplayer.audio.IAudioPlay;
+import com.chengfu.fuexoplayer.code.source.builder.MediaSourceBuilder;
 import com.chengfu.fuexoplayer.widget.ExoVideoView;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.PlaybackParameters;
@@ -52,14 +53,14 @@ public class ExoAudioPlayer implements IAudioPlay {
     private final AudioManager mAudioManager;
 
 
-    public  interface AudioListener {
-         void onLoadingChanged(boolean isLoading);
+    public interface AudioListener {
+        void onLoadingChanged(boolean isLoading);
 
-         void onPlayPauseChanged(boolean play);
+        void onPlayPauseChanged(boolean play);
 
-         void onError(ExoPlaybackException error);
+        void onError(ExoPlaybackException error);
 
-         void onCompletion();
+        void onCompletion();
     }
 
     public ExoAudioPlayer(Context context) {
@@ -107,6 +108,10 @@ public class ExoAudioPlayer implements IAudioPlay {
 
     @Override
     public void setAudioPath(String path) {
+        setAudioPath(path, null);
+    }
+
+    public void setAudioPath(String path, MediaSourceBuilder builder) {
         if (path == null) {
             stopPlayback();
             if (mAudioListener != null) {
@@ -116,7 +121,7 @@ public class ExoAudioPlayer implements IAudioPlay {
         }
         mAudioPath = path;
         mExoMediaPlayer.setPlayWhenReady(false);
-        mExoMediaPlayer.prepare(path);
+        mExoMediaPlayer.prepare(path, builder);
     }
 
     @Override
@@ -339,11 +344,6 @@ public class ExoAudioPlayer implements IAudioPlay {
             Log.i(TAG, "onPlayerError---error=" + error);
             if (mAudioListener != null) {
                 mAudioListener.onError(error);
-//                if (error != null) {
-//                    mAudioListener.onError(ExoPlayException.create(error.type, error.getCause(), error.rendererIndex));
-//                } else {
-//                    mAudioListener.onError(ExoPlayException.createForUnexpected(new RuntimeException("播放出错")));
-//                }
             }
         }
 
