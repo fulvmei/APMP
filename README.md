@@ -1,4 +1,4 @@
-# FPMF
+# APMF
 FPMF is a media playback library with similar APIs to the Android MediaPlayer and VideoView that uses the ExoPlayer as a backing when possible, otherwise the default Android MediaPlayer and VideoView are used.
 
 The ExoPlayer is only supported on devices that pass the compatibility Test Suite and that are JellyBean (API 16) or greater. The ExoPlayer provides additional support for streaming (HLS, DASH, etc.) and full HD (1080p +)
