@@ -1,7 +1,7 @@
-# APMP
-FPMP is a media playback library with similar APIs to the Android MediaPlayer and VideoView that uses the ExoPlayer as a backing when possible, otherwise the default Android MediaPlayer and VideoView are used.
+# 全平台多媒体播放器整体解决方案(APMP)
+All Platform Multimedia Player Solution
 
-The ExoPlayer is only supported on devices that pass the compatibility Test Suite and that are JellyBean (API 16) or greater. The ExoPlayer provides additional support for streaming (HLS, DASH, etc.) and full HD (1080p +)
+当前版本：0.1.1 alpha
 
 ## Use
 ```groovy
