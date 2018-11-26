@@ -51,29 +51,32 @@ exoVideoView.start();
 相关API
 设置播放器监听器
 ```java
-        exoVideoView.setVideoListener(new ExoVideoView.VideoListener() {
-            @Override
-            public void onReady() {
-            }
-            
-            @Override
-            public void onPlayPauseChanged(boolean play) {
-            }
-            
-            @Override
-            public void onLoadingChanged(boolean isLoading) {
+exoVideoView.setVideoListener(new ExoVideoView.VideoListener() {
+    @Override
+    public void onReady() {
+        
+    }
 
-            }
-            
-            @Override
-            public void onError(ExoPlaybackException error) {
-            }
-            
-            @Override
-            public void onCompletion() {
+    @Override
+    public void onPlayPauseChanged(boolean play) {
 
-            }
-        });
+    }
+
+    @Override
+    public void onLoadingChanged(boolean isLoading) {
+
+    }
+
+    @Override
+    public void onError(ExoPlaybackException error) {
+
+    }
+
+    @Override
+    public void onCompletion() {
+
+    }
+});
 ```
 
 设置播放器控制器
