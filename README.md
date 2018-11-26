@@ -49,6 +49,66 @@ exoVideoView.start();
 ```
 
 相关API
+设置播放器监听器
+```java
+        exoVideoView.setVideoListener(new ExoVideoView.VideoListener() {
+            @Override
+            public void onReady() {
+            }
+            
+            @Override
+            public void onPlayPauseChanged(boolean play) {
+            }
+            
+            @Override
+            public void onLoadingChanged(boolean isLoading) {
+
+            }
+            
+            @Override
+            public void onError(ExoPlaybackException error) {
+            }
+            
+            @Override
+            public void onCompletion() {
+
+            }
+        });
+```
+
+设置播放器控制器
+```java
+IVideoController videoController;
+exoVideoView.setVideoController(videoController);
+```
+
+设置播放器缩放类型
+```java
+exoVideoView.setScaleType(ExoVideoView.ScaleType.FIT_CENTER);
+```
+
+设置播放地址
+```java
+exoVideoView.setVideoPath(url);
+```
+
+播放器控制
+```java
+exoVideoView.start();//开始播放
+exoVideoView.pause();//暂停播放
+exoVideoView.getDuration();//获取播放总时长
+exoVideoView.getCurrentPosition();//获取当前播放时长
+exoVideoView.getBufferPercentage();//获取缓存百分比
+exoVideoView.isPlaying();//是否正在播放
+exoVideoView.seekTo(0);//跳到当前位置
+exoVideoView.stopPlayback(false);//停止播放
+exoVideoView.restart();//重新播放
+```
+
+退出前要释放播放器
+```java
+exoVideoView.release();//释放播放器
+```
 
 ### 2、IAC集成和使用
 
