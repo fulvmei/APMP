@@ -1,6 +1,8 @@
 # 全平台多媒体播放器整体解决方案(APMP)
 All Platform Multimedia Player Solution
 
+开发：贵州广播电视台新媒体中心
+
 当前版本：0.1.1 alpha
 
 ## 一、概述
