@@ -30,7 +30,7 @@ public class MediaSourceProvider {
     protected String userAgent = String.format(USER_AGENT_FORMAT, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE, Build.VERSION.RELEASE, Build.MODEL);
 
     @NonNull
-    public MediaSource generate(@NonNull Context context, @NonNull Handler handler, @NonNull Uri uri, @Nullable TransferListener<? super DataSource> transferListener, MediaSourceBuilder builder) {
+    public MediaSource generate(@NonNull Context context, @NonNull Handler handler, @NonNull Uri uri, @Nullable TransferListener transferListener, MediaSourceBuilder builder) {
         if (builder != null) {
             return builder.build(context, uri, userAgent, handler, transferListener);
         }

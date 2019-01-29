@@ -9,6 +9,7 @@ import com.chengfu.fuexoplayer.code.source.MediaSourceProvider;
 import com.chengfu.fuexoplayer.code.source.builder.MediaSourceBuilder;
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
+import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Format;
@@ -321,14 +322,32 @@ public class ExoMediaPlayer implements ExoPlayer {
 
     @Nullable
     @Override
+    public AudioComponent getAudioComponent() {
+        return mExoPlayer.getAudioComponent();
+    }
+
+    @Nullable
+    @Override
     public VideoComponent getVideoComponent() {
-        return null;
+        return mExoPlayer.getVideoComponent();
     }
 
     @Nullable
     @Override
     public TextComponent getTextComponent() {
+        return mExoPlayer.getTextComponent();
+    }
+
+    @Nullable
+    @Override
+    public MetadataComponent getMetadataComponent() {
         return null;
+    }
+
+
+    @Override
+    public Looper getApplicationLooper() {
+        return mExoPlayer.getApplicationLooper();
     }
 
     @Override
@@ -344,6 +363,12 @@ public class ExoMediaPlayer implements ExoPlayer {
     @Override
     public int getPlaybackState() {
         return mExoPlayer.getPlaybackState();
+    }
+
+    @Nullable
+    @Override
+    public ExoPlaybackException getPlaybackError() {
+        return mExoPlayer.getPlaybackError();
     }
 
     public void prepare(String mediaPath) {
@@ -390,6 +415,11 @@ public class ExoMediaPlayer implements ExoPlayer {
     }
 
     @Override
+    public void retry() {
+        mExoPlayer.retry();
+    }
+
+    @Override
     public void prepare(MediaSource mediaSource) {
         mExoPlayer.prepare(mediaSource);
     }
@@ -426,12 +456,12 @@ public class ExoMediaPlayer implements ExoPlayer {
 
     @Override
     public void setShuffleModeEnabled(boolean shuffleModeEnabled) {
-
+        mExoPlayer.setShuffleModeEnabled(shuffleModeEnabled);
     }
 
     @Override
     public boolean getShuffleModeEnabled() {
-        return false;
+        return mExoPlayer.getShuffleModeEnabled();
     }
 
     @Override
@@ -460,6 +490,27 @@ public class ExoMediaPlayer implements ExoPlayer {
     }
 
     @Override
+    public boolean hasPrevious() {
+        return false;
+    }
+
+    @Override
+    public void previous() {
+
+    }
+
+    @Override
+    public boolean hasNext() {
+        return false;
+    }
+
+    @Override
+    public void next() {
+
+    }
+
+
+    @Override
     public void setPlaybackParameters(PlaybackParameters playbackParameters) {
         mExoPlayer.setPlaybackParameters(playbackParameters);
     }
@@ -476,7 +527,7 @@ public class ExoMediaPlayer implements ExoPlayer {
 
     @Override
     public void stop(boolean reset) {
-
+        mExoPlayer.stop(reset);
     }
 
     @Override
@@ -503,7 +554,12 @@ public class ExoMediaPlayer implements ExoPlayer {
 
     @Override
     public void setSeekParameters(@Nullable SeekParameters seekParameters) {
+        mExoPlayer.setSeekParameters(seekParameters);
+    }
 
+    @Override
+    public SeekParameters getSeekParameters() {
+        return mExoPlayer.getSeekParameters();
     }
 
     @Override
@@ -548,12 +604,18 @@ public class ExoMediaPlayer implements ExoPlayer {
 
     @Override
     public int getNextWindowIndex() {
-        return 0;
+        return mExoPlayer.getNextWindowIndex();
     }
 
     @Override
     public int getPreviousWindowIndex() {
-        return 0;
+        return mExoPlayer.getPreviousWindowIndex();
+    }
+
+    @Nullable
+    @Override
+    public Object getCurrentTag() {
+        return mExoPlayer.getCurrentTag();
     }
 
     @Override
@@ -574,6 +636,11 @@ public class ExoMediaPlayer implements ExoPlayer {
     @Override
     public int getBufferedPercentage() {
         return mExoPlayer.getBufferedPercentage();
+    }
+
+    @Override
+    public long getTotalBufferedDuration() {
+        return mExoPlayer.getTotalBufferedDuration();
     }
 
     @Override
@@ -602,8 +669,18 @@ public class ExoMediaPlayer implements ExoPlayer {
     }
 
     @Override
+    public long getContentDuration() {
+        return mExoPlayer.getContentDuration();
+    }
+
+    @Override
     public long getContentPosition() {
         return mExoPlayer.getContentPosition();
+    }
+
+    @Override
+    public long getContentBufferedPosition() {
+        return mExoPlayer.getContentBufferedPosition();
     }
 
     private void removeSurfaceCallbacks() {

@@ -1,5 +1,4 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.novoda.bintray-release'
 
 android {
     compileSdkVersion 27
@@ -8,8 +7,8 @@ android {
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 27
-        versionCode 22
-        versionName "1.8.0"
+        versionCode 23
+        versionName "1.9.2"
     }
     buildTypes {
         release {
@@ -29,26 +28,7 @@ repositories {
 allprojects {
     repositories {
         jcenter()
-        maven { url "https://dl.bintray.com/fu-cheng/maven" }
     }
-    //加上这些
-    tasks.withType(Javadoc) {
-        options {
-            encoding "UTF-8"
-            charSet 'UTF-8'
-            links "http://docs.oracle.com/javase/7/docs/api"
-        }
-    }
-}
-
-publish {
-    repoName = 'maven'
-    userOrg = 'fu-cheng'
-    groupId = 'com.chengfu.fuexoplayer'
-    artifactId = 'fuexoplayer'
-    publishVersion = '1.8.0'
-    desc = 'a media player based on exoplayer'
-    website = "https://bintray.com/fu-cheng/maven/fuexoplayer"
 }
 
 dependencies {
@@ -57,5 +37,8 @@ dependencies {
     api "com.google.android.exoplayer:exoplayer-dash:$rootProject.ext.exoPlayerVersion"
     api "com.google.android.exoplayer:exoplayer-hls:$rootProject.ext.exoPlayerVersion"
     api "com.google.android.exoplayer:exoplayer-smoothstreaming:$rootProject.ext.exoPlayerVersion"
+    api "com.google.android.exoplayer:extension-rtmp:$rootProject.ext.exoPlayerVersion"
 
 }
+
+apply from: rootProject.file('uploadbintrayJceneterScript.gradle')

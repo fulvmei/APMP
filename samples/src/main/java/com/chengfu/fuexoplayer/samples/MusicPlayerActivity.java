@@ -5,7 +5,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
 import com.chengfu.fuexoplayer.ExoAudioPlayer;
-import com.chengfu.fuexoplayer.ExoPlayException;
 import com.chengfu.fuexoplayer.widget.ExoVideoView;
 
 /**

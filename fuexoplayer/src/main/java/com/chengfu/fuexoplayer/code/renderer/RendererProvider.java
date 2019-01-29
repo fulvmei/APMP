@@ -84,7 +84,7 @@ public class RendererProvider {
     protected List<Renderer> buildAudioRenderers() {
         List<Renderer> renderers = new ArrayList<>();
 
-        renderers.add(new MediaCodecAudioRenderer(MediaCodecSelector.DEFAULT, drmSessionManager, true, handler, audioRendererEventListener, AudioCapabilities.getCapabilities(context)));
+        renderers.add(new MediaCodecAudioRenderer(context,MediaCodecSelector.DEFAULT, drmSessionManager, true, handler, audioRendererEventListener, AudioCapabilities.getCapabilities(context)));
 
         // Adds any registered classes
         List<String> classNames = ExoMedia.Data.registeredRendererClasses.get(ExoMedia.RendererType.AUDIO);

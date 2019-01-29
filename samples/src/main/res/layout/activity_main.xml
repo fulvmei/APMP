@@ -1,23 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".MainActivity">
+    android:orientation="vertical">
 
-  <!--  <com.chengfu.fuexoplayer.widget.ExoVideoView
+    <com.chengfu.fuexoplayer.widget.ExoVideoView
         android:id="@+id/exoVideoView"
         android:layout_width="match_parent"
         android:layout_height="200dp">
 
-    </com.chengfu.fuexoplayer.widget.ExoVideoView>-->
-
-    <VideoView
-        android:id="@+id/video"
-        android:layout_width="match_parent"
-        android:layout_height="200dp" />
+    </com.chengfu.fuexoplayer.widget.ExoVideoView>
 
     <Button
         android:id="@+id/music_samples"
