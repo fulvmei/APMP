@@ -323,8 +323,8 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
 
     @Override
     public void start() {
-        setKeepScreenOn(true);
-        tryToGetAudioFocus();
+//        setKeepScreenOn(true);
+//        tryToGetAudioFocus();
 
         mExoMediaPlayer.setPlayWhenReady(true);
         mPlayRequested = true;
@@ -332,7 +332,7 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
 
     @Override
     public void pause() {
-        setKeepScreenOn(false);
+//        setKeepScreenOn(false);
 
         mExoMediaPlayer.setPlayWhenReady(false);
         mPlayRequested = false;
@@ -354,8 +354,8 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
 
     @Override
     public void suspend() {
-        setKeepScreenOn(false);
-        giveUpAudioFocus();
+//        setKeepScreenOn(false);
+//        giveUpAudioFocus();
 
         mExoMediaPlayer.release();
         mPlayRequested = false;
@@ -364,8 +364,8 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
     @Override
     public void stopPlayback(boolean clearSurface) {
         pause();
-        setKeepScreenOn(false);
-        giveUpAudioFocus();
+//        setKeepScreenOn(false);
+//        giveUpAudioFocus();
         mExoMediaPlayer.stop();
         mPlayRequested = false;
         if (clearSurface) {
@@ -542,6 +542,27 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
 
     };
 
+    private void updateScreenOn(boolean playWhenReady, int playbackState) {
+        boolean keepScreenOn = false;
+        if (playbackState != Player.STATE_IDLE
+                && playbackState != Player.STATE_ENDED && playWhenReady) {
+            keepScreenOn = true;
+        }
+        setKeepScreenOn(keepScreenOn);
+    }
+
+    private void updateAudioFocus(boolean playWhenReady, int playbackState) {
+        if (playbackState == Player.STATE_READY
+                && playWhenReady) {
+            tryToGetAudioFocus();
+        }
+        if (playbackState == Player.STATE_IDLE
+                || playbackState == Player.STATE_ENDED
+                || !playWhenReady) {
+            giveUpAudioFocus();
+        }
+    }
+
     public class ExoPlayerListener
             implements VideoRendererEventListener, Player.EventListener {
 
@@ -566,7 +587,8 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
         @Override
         public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
             Log.i(TAG, "onPlayerStateChanged---playWhenReady=" + playWhenReady + ",playbackState=" + playbackState);
-
+            updateScreenOn(playWhenReady, playbackState);
+            updateAudioFocus(playWhenReady, playbackState);
             if (playbackState == Player.STATE_BUFFERING && mVideoListener != null) {
                 mVideoListener.onLoadingChanged(true);
             }
@@ -609,7 +631,7 @@ public class ExoVideoView extends FrameLayout implements IVideoPlay {
         @Override
         public void onPlayerError(ExoPlaybackException error) {
             Log.i(TAG, "onPlayerError---error=" + error);
-            setKeepScreenOn(false);
+//            setKeepScreenOn(false);
             if (mVideoListener != null) {
                 mVideoListener.onError(error);
 //                if (error != null) {
